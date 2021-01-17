@@ -111,8 +111,8 @@ class Game:
     
     def rankResponse(self,result):
         response = []
-        line = "----------------------------------------------"
-        result_cols = ["Player    ","Games","Buyins","First","Second ","Net    "]
+        line = "---------------------------------------------"
+        result_cols = ["Player    ","Games","Buyins","First","Second","Net    "]
         # print(f"{','.join(result_cols)}")
         # print(line)
         response.append(f"{' '.join(result_cols)}")
@@ -136,7 +136,7 @@ class Game:
                     net = "{:4.1f}".format(row[9])
                 else:
                     net = 0
-                nextcol = name.ljust(10,' ').title()+str(games).rjust(5,' '),str(buyins).rjust(6,' '),str(first).rjust(5,' '),str(second).rjust(6,' '),(net).ljust(5,' ')
+                nextcol = name.ljust(10,' ').title()+str(games).rjust(5,' '),str(buyins).rjust(6,' '),str(first).rjust(5,' '),str(second).rjust(6,' '),(net).rjust(5,' ')
                 # print((",".join(nextcol)))
                 response.append(f"{' '.join(nextcol)}")
                 # response.append(line)
@@ -154,7 +154,7 @@ class Game:
         result = self.conn.data_insert(query)
 
     def getLeaderBoard(self):
-        query = "select * from leaderboard order by first desc, second desc"
+        query = "select * from leaderboard order by first desc, second desc, net_win desc"
         result = (self.conn.data_operations(query))
         return result
 
@@ -205,7 +205,7 @@ class Winner:
         result = self.conn.data_insert(query)
         return result
     
-    def normalWin(self,winner,runner):
+    def prepareWin(self,winner,runner):
         game = Game(self.conn)
         game_id = game.getGameId()
         if game_id:
@@ -216,22 +216,62 @@ class Winner:
             winneramount = round(( totalAmount - rent)*.667,-2)
             runneramount = totalAmount - rent - winneramount
             if (winner.lower() in buyins.keys())  and (runner.lower() in buyins.keys()):
-                winner_profit = winneramount - buyins[winner.lower()]*amount
-                runner_profit = runneramount - buyins[runner.lower()]*amount
-                winner_share = winneramount/totalAmount
-                runner_share = runneramount/totalAmount
-                self.addPlayerWin(winner,winner_profit,winner_share,buyins[winner.lower()]*amount,game_id)
-                self.addPlayerWin(runner,runner_profit,runner_share,buyins[runner.lower()]*amount,game_id)
-                game.close()
-                response = f"{winner.title()} : {winneramount}, {runner.title()} : {runneramount}"
+                return (winneramount,runneramount,amount,buyins,totalAmount,game_id)
             else:
                 response = "The winners are not in the game played."
         else:
             response = "No game in progress"
         return response
-
-    def ICMWin(self):
-        pass
+    
+    
+    def normalWin(self,winner,runner):
+        game = Game(self.conn)
+        result = self.prepareWin(winner,runner)
+        if len(result) > 1 :
+            winneramount,runneramount,amount,buyins,totalAmount,game_id = result
+            winner_profit = winneramount - buyins[winner.lower()]*amount
+            runner_profit = runneramount - buyins[runner.lower()]*amount
+            winner_share = winneramount/totalAmount
+            runner_share = runneramount/totalAmount
+            self.addPlayerWin(winner,winner_profit,winner_share,buyins[winner.lower()]*amount,game_id)
+            self.addPlayerWin(runner,runner_profit,runner_share,buyins[runner.lower()]*amount,game_id)
+            game.close()
+            response = f"{winner.title()} : {winneramount}, {runner.title()} : {runneramount}"
+            return response
+        else:
+            return result
+        
+    def ICMWin(self,chipsCount,winnerName):
+        game = Game(self.conn)
+        chips = chipsCount.split('/')
+        winners = winnerName.split('/')
+        result = self.prepareWin(winners[0],winners[1])
+        if type(result) == tuple :
+            try:
+                winnerChips = int(chips[0]) 
+                runnerChips = int(chips[1])
+                chipsTotal = winnerChips + runnerChips
+                winneramount,runneramount,amount,buyins,totalAmount,game_id = result
+                winDiff = winneramount - runneramount
+                firstWinner = round((winDiff*(winnerChips/chipsTotal) + runneramount),-2)
+                secondWinner = totalAmount - firstWinner
+                winner_profit = firstWinner - buyins[winners[0].lower()]*amount
+                runner_profit = secondWinner - buyins[winners[1].lower()]*amount
+                winner_share = firstWinner/totalAmount
+                runner_share = secondWinner/totalAmount
+                if winner_share == runner_share:
+                    winner_share = 0.501
+                    runner_share = 0.499
+                self.addPlayerWin(winners[0],winner_profit,winner_share,buyins[winners[0].lower()]*amount,game_id)
+                self.addPlayerWin(winners[1],runner_profit,runner_share,buyins[winners[1].lower()]*amount,game_id)
+                game.close()
+                response = f"{winners[0].title()} : {firstWinner}, {winners[1].title()} : {secondWinner}"
+                return response
+            except Exception as e:
+                print(e)
+                return "Chips should be in Numbers"
+        else:
+            return result
 
 class Register:
     def __init__(self,conn):

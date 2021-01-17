@@ -39,13 +39,23 @@ try:
                 response = "You need two winners"
             await ctx.send(response)
 
+    @ bot.command(name = 'icm',help="'winnerchips/runnerchips' 'winner/runner'")
+    async def icm(ctx,*args):
+        if (ctx.channel.name == CHANNEL):
+            if (len(args) ==2):
+                response=Winner(connect).ICMWin(args[0],args[1])
+            else:
+                response = "You need to provide both chip counts and winners"
+            await ctx.send(response)
+
+
     @ bot.command(name = 'game',help="Will give the current status of the game")
     async def game(ctx):
         if (ctx.channel.name == CHANNEL):
             response = Game(connect).getStatus()
             await ctx.send(response)
     
-    @ bot.command(name = 'rank',help="Will give the Leaderboard for the current year, when text is given it will be text output")
+    @ bot.command(name = 'rank',help="'text' Will give the Leaderboard for the current year")
     async def rank(ctx,*arg):
         if (ctx.channel.name == CHANNEL):
             if arg:

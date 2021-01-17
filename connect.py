@@ -23,7 +23,7 @@ class Connection:
             if self.conn.is_connected():
                 cursor = self.conn.cursor()
                 #executing the query on the database and get the results
-                print(f"query:{query}")
+                # print(f"query:{query}")
                 cursor.execute(query)
                 #If No error is enountered, cursor is closed
                 cursor.close()
