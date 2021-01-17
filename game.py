@@ -1,5 +1,7 @@
 from connect import Connection
 from datetime import datetime
+# from numpy import genfromtxt
+import text_to_image
 import csv
 
 class Game:
@@ -104,8 +106,46 @@ class Game:
                 response += f"\nThese players are not registered \n{'-'.join(nonplayers)}\n"
         else:
                 response="No game in progress. Start a new Game"
-        print(response)
+        # print(response)
         return response
+    
+    def rankResponse(self,result):
+        response = []
+        line = "----------------------------------------------"
+        result_cols = ["Player    ","Games","Buyins","First","Second ","Net    "]
+        # print(f"{','.join(result_cols)}")
+        # print(line)
+        response.append(f"{' '.join(result_cols)}")
+        
+        response.append(line)
+    #r.append(result_cols)
+        for row in result:
+            if row[3]:
+                name = row[1]
+                games = row[2]
+                buyins = row[3]
+                if row[4]:
+                    first = row[4]
+                else:
+                    first = 0
+                if row[5]:
+                    second = row[5]
+                else:
+                    second = 0
+                if row[9]:
+                    net = "{:4.1f}".format(row[9])
+                else:
+                    net = 0
+                nextcol = name.ljust(10,' ').title()+str(games).rjust(5,' '),str(buyins).rjust(6,' '),str(first).rjust(5,' '),str(second).rjust(6,' '),(net).ljust(5,' ')
+                # print((",".join(nextcol)))
+                response.append(f"{' '.join(nextcol)}")
+                # response.append(line)
+        return response
+
+    
+    def getRank(self):
+        leaderrank = self.getLeaderBoard()
+        return self.rankResponse(leaderrank)
     
     def close(self):
         game_id = self.getGameId()
@@ -113,8 +153,8 @@ class Game:
         query = f"update game set end_time = '{end_time}' where id = {game_id}"
         result = self.conn.data_insert(query)
 
-    def leaderboard(self):
-        query = "select * from leaderboard"
+    def getLeaderBoard(self):
+        query = "select * from leaderboard order by first desc, second desc"
         result = (self.conn.data_operations(query))
         return result
 
@@ -213,8 +253,13 @@ if __name__ == '__main__':
     c = Connection()
     c.connect()
     g = Game(c)
-    result = g.leaderboard()
-    with open("leader.csv","w") as csvfile:
-        writer = csv.writer(csvfile)
-        for r in result:
-            writer.writerow(r)
+    result = g.getRank()
+    st = "\n".join(result)
+    encoded_image_path = text_to_image.encode(st, "image.png")
+    encoded_image_path = text_to_image.encode("Hello World!", "what.png")
+    print("\n".join(result))
+
+    # with open("leader.csv","w") as csvfile:
+    #     writer = csv.writer(csvfile)
+    #     for r in result:
+    #         writer.writerow(r)

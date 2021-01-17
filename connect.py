@@ -1,15 +1,20 @@
 import mysql.connector
 from mysql.connector import Error
 from dotenv import load_dotenv
+from data import Details
 
 class Connection:
 
     def __init__(self):
         self.conn = None
         load_dotenv()
-        self.user=os.getenv('DBUSER')
-        self.password=os.getenv('DBPASSWORD')
-        self.dbname=os.getenv('DBNAME')
+        # self.user=os.getenv('DBUSER')
+        # self.password=os.getenv('DBPASSWORD')
+        # self.dbname=os.getenv('DBNAME')
+        self.user=Details().DBUSER
+        self.password=Details().DBPASSWORD
+        self.dbname=Details().DBNAME
+
 
     def data_insert(self,query):
         """ Function which performs database operations and returns results """
@@ -42,7 +47,7 @@ class Connection:
             if self.conn.is_connected():
                 cursor = self.conn.cursor()
                 #executing the query on the database and get the results
-                print(f"query:{query}")
+                # print(f"query:{query}")
                 cursor.execute(query)
                 results = cursor.fetchall()
             else:
@@ -63,7 +68,7 @@ class Connection:
         try:
             self.conn = mysql.connector.connect(host='localhost',
                                         database=self.dbname,
-                                        user=self.user,password=self.password)
+                                        user=self.user)
             if self.conn.is_connected():
                 print('Connected to MySQL database')
 
