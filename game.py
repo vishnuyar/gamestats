@@ -160,16 +160,16 @@ class Game:
         response.append(line)
     #r.append(result_cols)
         for row in result:
-            if row[3]:
+            if row[2]:
                 name = row[0]
                 games = row[1]
                 buyins = row[2]
-                if row[4]:
-                    first = row[3]
+                if row[3]:
+                    first = int(row[3])
                 else:
                     first = 0
-                if row[5]:
-                    second = row[4]
+                if row[4]:
+                    second = int(row[4])
                 else:
                     second = 0
                 strikerate = "{:4.1f}".format((first+second)*100/games)
@@ -178,7 +178,6 @@ class Game:
                 else:
                     net = 0
                 nextcol = name.ljust(10,' ').title()+str(games).rjust(5,' '),str(buyins).rjust(6,' '),str(first).rjust(5,' '),str(second).rjust(6,' '),(strikerate).rjust(5,' ')
-                # print((",".join(nextcol)))
                 response.append(f"{' '.join(nextcol)}")
                 # response.append(line)
         return response
@@ -195,7 +194,7 @@ class Game:
         result = self.conn.data_insert(query)
 
     def getLeaderBoard(self):
-        query = "select name,games_played,total_buyins,first,second,net_win from leaderboard order by (first+second) desc,first desc, second desc, net_win desc"
+        query = "select name,games_played,total_buyins,coalesce(first,0) as firstN,coalesce(second,0) as secondN,net_win,(first+second) as total from leaderboard where games_played > 0 order by total desc NULLS LAST,first desc NULLS LAST, second desc NULLS LAST, net_win desc"
         result = (self.conn.data_operations(query))
         return result
 
