@@ -10,6 +10,41 @@ class Game:
         self.players = []
         if self.conn is None:
             raise Exception("DB Connection not available")
+    
+    def changeBuy(self,newBuyin):
+        try:
+            amount = float(newBuyin)
+            game_id = self.getGameId()
+            if game_id:
+                query = f"update game set buy_in ={amount} where id = {game_id}"
+                result = self.conn.data_insert(query)
+                if result:
+                    return f"Buyin amount changed to {amount}"
+                else:
+                    return "Failed to change Buyin Amount"
+            else:
+                return "No Game in progress to change Buyin Amount"
+        except Exception as e:
+            print(e)
+            return "The Buyin amount has to be a number"
+    
+    def changeRent(self,newRent):
+        try:
+            amount = float(newRent)
+            game_id = self.getGameId()
+            if game_id:
+                query = f"update game set rent ={amount} where id = {game_id}"
+                result = self.conn.data_insert(query)
+                if result:
+                    return f"Rent amount changed to {amount}"
+                else:
+                    return "Failed to change Rent Amount"
+            else:
+                return "No Game in progress to change Rent Amount"
+        except Exception as e:
+            print(e)
+            return "The Rent amount has to be a number"
+    
     def newGame(self,*args):
         buyinAmount = 400
         rent = 200
@@ -45,10 +80,15 @@ class Game:
 
     def getBuyins(self,game_id):
         buyins = {}
-        query = f"select name,count(player_id) from buy,player where game_id = {game_id} and buy.player_id = player.id group by game_id, player_id;"
+        players = {}
+        query = f"select id,name from player"
         result = (self.conn.data_operations(query))
-        for value in result:
-            buyins[value[0]] = value[1]
+        for r in result:
+            players[r[0]]=r[1]
+        query = f"select player_id,count(player_id) from buy where game_id = {game_id}  group by game_id, player_id;"
+        buyinsResult = (self.conn.data_operations(query))
+        for value in buyinsResult:
+            buyins[players[value[0]]] = value[1]
         return buyins
 
     def getRent(self,game_id):
@@ -112,7 +152,7 @@ class Game:
     def rankResponse(self,result):
         response = []
         line = "---------------------------------------------"
-        result_cols = ["Player    ","Games","Buyins","First","Second","Net    "]
+        result_cols = ["Player    ","Games","Buyins","First","Second","S/R    "]
         # print(f"{','.join(result_cols)}")
         # print(line)
         response.append(f"{' '.join(result_cols)}")
@@ -121,22 +161,23 @@ class Game:
     #r.append(result_cols)
         for row in result:
             if row[3]:
-                name = row[1]
-                games = row[2]
-                buyins = row[3]
+                name = row[0]
+                games = row[1]
+                buyins = row[2]
                 if row[4]:
-                    first = row[4]
+                    first = row[3]
                 else:
                     first = 0
                 if row[5]:
-                    second = row[5]
+                    second = row[4]
                 else:
                     second = 0
-                if row[9]:
-                    net = "{:4.1f}".format(row[9])
+                strikerate = "{:4.1f}".format((first+second)*100/games)
+                if row[5]:
+                    net = "{:4.1f}".format(row[5])
                 else:
                     net = 0
-                nextcol = name.ljust(10,' ').title()+str(games).rjust(5,' '),str(buyins).rjust(6,' '),str(first).rjust(5,' '),str(second).rjust(6,' '),(net).rjust(5,' ')
+                nextcol = name.ljust(10,' ').title()+str(games).rjust(5,' '),str(buyins).rjust(6,' '),str(first).rjust(5,' '),str(second).rjust(6,' '),(strikerate).rjust(5,' ')
                 # print((",".join(nextcol)))
                 response.append(f"{' '.join(nextcol)}")
                 # response.append(line)
@@ -154,7 +195,7 @@ class Game:
         result = self.conn.data_insert(query)
 
     def getLeaderBoard(self):
-        query = "select * from leaderboard order by first desc, second desc, net_win desc"
+        query = "select name,games_played,total_buyins,first,second,net_win from leaderboard order by (first+second) desc,first desc, second desc, net_win desc"
         result = (self.conn.data_operations(query))
         return result
 
@@ -210,8 +251,8 @@ class Winner:
         game_id = game.getGameId()
         if game_id:
             buyins = game.getBuyins(game_id)
-            rent = game.getRent(game_id)
-            amount = game.getBuyAmount(game_id)
+            rent = float(game.getRent(game_id))
+            amount = float(game.getBuyAmount(game_id))
             totalAmount = sum(buyins.values())*amount
             winneramount = round(( totalAmount - rent)*.667,-2)
             runneramount = totalAmount - rent - winneramount
@@ -223,26 +264,62 @@ class Winner:
             response = "No game in progress"
         return response
     
+    def getDivision(self,winners,profits,buyins,amount):
+        division = {}
+        amountbuyins = {}
+        for player in buyins:
+            if player not in winners:
+                amountbuyins[player] = buyins[player]*amount
+        for i in range(len(winners)):
+            player = winners[i]
+            amount = profits[i]
+            division[player] = ""
+            while (amount > 0) and (len(amountbuyins) > 0):
+                names = list(amountbuyins.keys())
+                playername = names[0]
+                if amountbuyins[playername] > amount:
+                    sendamount = amount
+                    amountbuyins[playername] -= sendamount
+                    amount = 0
+                else:
+                    sendamount = amountbuyins[playername]
+                    amount -= sendamount
+                    amountbuyins.pop(playername)
+                division[player] += (f"{playername.title()}->{sendamount}\n")
+        if len(amountbuyins) > 0:
+            division['Rent'] = f"{playername.title()}->{amountbuyins[playername]}\n"
+        return division
     
     def normalWin(self,winner,runner):
-        game = Game(self.conn)
         result = self.prepareWin(winner,runner)
-        if len(result) > 1 :
+        if type(result) == tuple:
             winneramount,runneramount,amount,buyins,totalAmount,game_id = result
             winner_profit = winneramount - buyins[winner.lower()]*amount
             runner_profit = runneramount - buyins[runner.lower()]*amount
             winner_share = winneramount/totalAmount
             runner_share = runneramount/totalAmount
-            self.addPlayerWin(winner,winner_profit,winner_share,buyins[winner.lower()]*amount,game_id)
-            self.addPlayerWin(runner,runner_profit,runner_share,buyins[runner.lower()]*amount,game_id)
-            game.close()
-            response = f"{winner.title()} : {winneramount}, {runner.title()} : {runneramount}"
+            response = self.addWins([winner,runner],[winner_profit,runner_profit],[winner_share,runner_share],buyins,amount,game_id)
             return response
         else:
             return result
         
+    def addWins(self,winners,profits,shares,buyins,amount,game_id):
+        response = ""
+        for i in range(len(winners)):
+            winner = winners[i]
+            profit = profits[i]
+            share = shares[i]
+            self.addPlayerWin(winner,profit,share,buyins[winner.lower()]*amount,game_id)
+            response += f"{winner.title()} : Gross {buyins[winner.lower()]*amount+profit} & Net :{profit}\n"
+        response +="\n"
+        divmesg = self.getDivision(winners,profits,buyins,amount)
+        for player in divmesg:
+            response += f"To {player.title()} :\n{divmesg[player]}\n"
+        #Close the game before sending response
+        Game(self.conn).close()
+        return response
+    
     def ICMWin(self,chipsCount,winnerName):
-        game = Game(self.conn)
         chips = chipsCount.split('/')
         winners = winnerName.split('/')
         result = self.prepareWin(winners[0],winners[1])
@@ -254,7 +331,7 @@ class Winner:
                 winneramount,runneramount,amount,buyins,totalAmount,game_id = result
                 winDiff = winneramount - runneramount
                 firstWinner = round((winDiff*(winnerChips/chipsTotal) + runneramount),-2)
-                secondWinner = totalAmount - firstWinner
+                secondWinner = winneramount + runneramount - firstWinner
                 winner_profit = firstWinner - buyins[winners[0].lower()]*amount
                 runner_profit = secondWinner - buyins[winners[1].lower()]*amount
                 winner_share = firstWinner/totalAmount
@@ -262,10 +339,7 @@ class Winner:
                 if winner_share == runner_share:
                     winner_share = 0.501
                     runner_share = 0.499
-                self.addPlayerWin(winners[0],winner_profit,winner_share,buyins[winners[0].lower()]*amount,game_id)
-                self.addPlayerWin(winners[1],runner_profit,runner_share,buyins[winners[1].lower()]*amount,game_id)
-                game.close()
-                response = f"{winners[0].title()} : {firstWinner}, {winners[1].title()} : {secondWinner}"
+                response = self.addWins(winners,[winner_profit,runner_profit],[winner_share,runner_share],buyins,amount,game_id)
                 return response
             except Exception as e:
                 print(e)

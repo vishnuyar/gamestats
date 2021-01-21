@@ -26,8 +26,11 @@ try:
     @ bot.command(name = 'buy',help="'playername': Add as many players names as buyins ")
     async def buy(ctx, *args):
         if (ctx.channel.name == CHANNEL):
-            game=Game(connect)
-            response=game.addBuyins(args)
+            if len(args) > 0:
+                game=Game(connect)
+                response=game.addBuyins(args)
+            else:
+                response="Add player names for buyins"
             await ctx.send(response)
 
     @ bot.command(name = 'winner',help="'winnername' 'runnername'")
@@ -69,6 +72,24 @@ try:
         if (ctx.channel.name == CHANNEL):
             game=Game(connect).newGame(*args)
             response=f"Started new game {game[0]} at {game[1]}"
+            await ctx.send(response)
+    
+    @ bot.command(name = 'amount',help="'change buyin amount'")
+    async def amount(ctx, *args):
+        if (ctx.channel.name == CHANNEL):
+            if len(args) > 0:
+                response=Game(connect).changeBuy(args[0])
+            else:
+                response=f"Buyin amount has to be provided"
+            await ctx.send(response)
+    
+    @ bot.command(name = 'rent',help="'change rent amount'")
+    async def rent(ctx, *args):
+        if (ctx.channel.name == CHANNEL):
+            if len(args) > 0:
+                response=Game(connect).changeRent(args[0])
+            else:
+                response=f"Rent amount has to be provided"
             await ctx.send(response)
 
     @ bot.command(name = 'register',help="'playername' for adding a new player to the System")

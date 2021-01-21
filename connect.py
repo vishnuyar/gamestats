@@ -1,5 +1,6 @@
-import mysql.connector
-from mysql.connector import Error
+#import mysql.connector
+#from mysql.connector import Error
+import psycopg2
 from dotenv import load_dotenv
 from data import Details
 
@@ -14,13 +15,14 @@ class Connection:
         self.user=Details().DBUSER
         self.password=Details().DBPASSWORD
         self.dbname=Details().DBNAME
+        self.dbpasswd=Details().DBPASSWORD
 
 
     def data_insert(self,query):
         """ Function which performs database operations and returns results """
         try:
             #creating a cursor for connection
-            if self.conn.is_connected():
+            if self.conn:
                 cursor = self.conn.cursor()
                 #executing the query on the database and get the results
                 # print(f"query:{query}")
@@ -44,7 +46,7 @@ class Connection:
         """ Function which performs database operations and returns results """
         try:
             #creating a cursor for connection
-            if self.conn.is_connected():
+            if self.conn:
                 cursor = self.conn.cursor()
                 #executing the query on the database and get the results
                 # print(f"query:{query}")
@@ -66,17 +68,18 @@ class Connection:
     def connect(self):
         """ Connect to MySQL database """
         try:
-            self.conn = mysql.connector.connect(host='localhost',
+            self.conn = psycopg2.connect(host='localhost',
                                         database=self.dbname,
-                                        user=self.user)
-            if self.conn.is_connected():
-                print('Connected to MySQL database')
+                                        user=self.user,
+                                        password=self.dbpasswd)
+            if self.conn:
+                print('Connected to PostgreSQL database')
 
-        except Error as e:
+        except Exception as e:
             print(e)
 
     def close(self):
-        if self.conn is not None and self.conn.is_connected():
+        if self.conn is not None:
             self.conn.close()
             print("Database connection closed")
 
