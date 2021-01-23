@@ -28,32 +28,33 @@ class Game:
             print(e)
             return "The Buyin amount has to be a number"
     
-    def changeRent(self,newRent):
+    def changereserve(self,newReserve):
         try:
-            amount = float(newRent)
+            amount = float(newReserve)
             game_id = self.getGameId()
             if game_id:
-                query = f"update game set rent ={amount} where id = {game_id}"
+                query = f"update game set reserve ={amount} where id = {game_id}"
                 result = self.conn.data_insert(query)
                 if result:
-                    return f"Rent amount changed to {amount}"
+                    return f"reserve amount changed to {amount}"
                 else:
-                    return "Failed to change Rent Amount"
+                    return "Failed to change reserve Amount"
             else:
-                return "No Game in progress to change Rent Amount"
+                return "No Game in progress to change reserve Amount"
         except Exception as e:
             print(e)
-            return "The Rent amount has to be a number"
+            return "The reserve amount has to be a number"
     
     def newGame(self,*args):
         buyinAmount = 400
-        rent = 200
+        reserve = 200
+        rent = 0
         gametime = datetime.now()
         if (len(args)>0):
             buyinAmount = args[0]
         if (len(args)>1):
-            rent = args[1]
-        query = f"INSERT INTO game (BUY_IN, RENT, START_TIME ) VALUES({buyinAmount},{rent},'{gametime}')"
+            reserve = args[1]
+        query = f"INSERT INTO game (BUY_IN, RENT, START_TIME,RESERVE ) VALUES({buyinAmount},{rent},'{gametime}',{reserve})"
         result = self.conn.data_insert(query)
         if result:
             query = "SELECT ID,START_TIME FROM game where ID = (SELECT MAX(ID) FROM game)"
@@ -91,13 +92,13 @@ class Game:
             buyins[players[value[0]]] = value[1]
         return buyins
 
-    def getRent(self,game_id):
-        rent = 0
-        query = f"select rent from game where id = {game_id}"
+    def getreserve(self,game_id):
+        reserve = 0
+        query = f"select reserve from game where id = {game_id}"
         result = (self.conn.data_operations(query))
         for value in result:
-            rent = value[0]
-        return rent
+            reserve = value[0]
+        return reserve
 
     def getBuyAmount(self,game_id):
         amount = 0
@@ -131,7 +132,7 @@ class Game:
         if game_id:
             for player in buys:
                 if player.lower() in players:
-                    status = Player(self.conn).addBuy(player,game_id)
+                    status = Player(self.conn).addBuy(player.lower(),game_id)
                     if status:
                         if player in buyins.keys():
                             buyins[player] += 1
@@ -250,11 +251,11 @@ class Winner:
         game_id = game.getGameId()
         if game_id:
             buyins = game.getBuyins(game_id)
-            rent = float(game.getRent(game_id))
+            reserve = float(game.getreserve(game_id))
             amount = float(game.getBuyAmount(game_id))
             totalAmount = sum(buyins.values())*amount
-            winneramount = round(( totalAmount - rent)*.667,-2)
-            runneramount = totalAmount - rent - winneramount
+            winneramount = round(( totalAmount - reserve)*.667,-2)
+            runneramount = totalAmount - reserve - winneramount
             if (winner.lower() in buyins.keys())  and (runner.lower() in buyins.keys()):
                 return (winneramount,runneramount,amount,buyins,totalAmount,game_id)
             else:
@@ -286,7 +287,7 @@ class Winner:
                     amountbuyins.pop(playername)
                 division[player] += (f"{playername.title()}->{sendamount}\n")
         if len(amountbuyins) > 0:
-            division['Rent'] = f"{playername.title()}->{amountbuyins[playername]}\n"
+            division['Reserver'] = f"{playername.title()}->{amountbuyins[playername]}\n"
         return division
     
     def normalWin(self,winner,runner):

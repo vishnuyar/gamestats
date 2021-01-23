@@ -5,6 +5,7 @@ import random
 from dotenv import load_dotenv
 from discord.ext import commands
 from game import Game, Register, Player, Winner
+from expense import Expense
 from connect import Connection
 from data import Details
 from image import createImage
@@ -57,6 +58,21 @@ try:
         if (ctx.channel.name == CHANNEL):
             response = Game(connect).getStatus()
             await ctx.send(response)
+
+    @ bot.command(name = 'expense',help="Add expense details amount, description")
+    async def game(ctx,*args):
+        if (ctx.channel.name == CHANNEL):
+            if len(args) > 1:
+                response = Expense(connect).add(args)
+            else:
+                response = "Both Amount and description required for adding expense"
+            await ctx.send(response)
+    
+    @ bot.command(name = 'balance',help="Gives reserve fund balance")
+    async def balance(ctx,*args):
+        if (ctx.channel.name == CHANNEL):
+            response = Expense(connect).balance()
+            await ctx.send(response)
     
     @ bot.command(name = 'rank',help="'text' Will give the Leaderboard for the current year")
     async def rank(ctx,*arg):
@@ -67,7 +83,7 @@ try:
                 createImage()
                 await ctx.send(file=discord.File('rank.png'))
 
-    @ bot.command(name = 'start',help="'buyin amount' 'rent' Default is 400,200")
+    @ bot.command(name = 'start',help="'buyin amount' 'reserve' Default is 400,200")
     async def start(ctx, *args):
         if (ctx.channel.name == CHANNEL):
             game=Game(connect).newGame(*args)
@@ -83,13 +99,13 @@ try:
                 response=f"Buyin amount has to be provided"
             await ctx.send(response)
     
-    @ bot.command(name = 'rent',help="'change rent amount'")
-    async def rent(ctx, *args):
+    @ bot.command(name = 'reserve',help="'change reserve amount'")
+    async def reserve(ctx, *args):
         if (ctx.channel.name == CHANNEL):
             if len(args) > 0:
-                response=Game(connect).changeRent(args[0])
+                response=Game(connect).changereserve(args[0])
             else:
-                response=f"Rent amount has to be provided"
+                response=f"reserve amount has to be provided"
             await ctx.send(response)
 
     @ bot.command(name = 'register',help="'playername' for adding a new player to the System")
