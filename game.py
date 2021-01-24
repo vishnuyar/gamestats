@@ -1,5 +1,6 @@
 from connect import Connection
 from datetime import datetime
+import random
 # from numpy import genfromtxt
 import text_to_image
 import csv
@@ -270,13 +271,21 @@ class Winner:
         for player in buyins:
             if player not in winners:
                 amountbuyins[player] = buyins[player]*amount
+
+        #Assign reserve to the Treasurer
+        if sum(amountbuyins.values()) > sum(profits):
+            #Hard coding for Chandra for now -- later get it from treasurer name
+            if ('chandra' in amountbuyins.keys()):
+                reserveAmount = sum(amountbuyins.values()) - sum(profits)
+                amountbuyins['chandra'] -= reserveAmount
+                division['Reserve'] = f"Chandra->{reserveAmount}\n"
         for i in range(len(winners)):
             player = winners[i]
             amount = profits[i]
             division[player] = ""
             while (amount > 0) and (len(amountbuyins) > 0):
                 names = list(amountbuyins.keys())
-                playername = names[0]
+                playername = random.choice(names)
                 if amountbuyins[playername] > amount:
                     sendamount = amount
                     amountbuyins[playername] -= sendamount
@@ -287,7 +296,7 @@ class Winner:
                     amountbuyins.pop(playername)
                 division[player] += (f"{playername.title()}->{sendamount}\n")
         if len(amountbuyins) > 0:
-            division['Reserver'] = f"{playername.title()}->{amountbuyins[playername]}\n"
+            division['Reserve'] = f"{playername.title()}->{amountbuyins[playername]}\n"
         return division
     
     def normalWin(self,winner,runner):
