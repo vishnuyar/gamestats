@@ -6,6 +6,7 @@ class Details:
         self.DBUSER=None
         self.DBNAME=None
         self.DBPASSWORD=None
+        self.CHANNEL=None
         self.readFile()
         
 
@@ -23,6 +24,8 @@ class Details:
                 self.DBNAME = line.replace("DBNAME=","").replace("\n","")
             if line.startswith("DBPASSWORD"):
                 self.DBPASSWORD = line.replace("DBPASSWORD=","").replace("\n","")
+            if line.startswith("CHANNEL"):
+                self.CHANNEL = line.replace("CHANNEL=","").replace("\n","")
 
 
 

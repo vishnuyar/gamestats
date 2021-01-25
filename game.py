@@ -1,5 +1,7 @@
 from connect import Connection
 from datetime import datetime
+from ledger import Ledger
+from player import Player
 import random
 # from numpy import genfromtxt
 import text_to_image
@@ -11,6 +13,7 @@ class Game:
         self.players = []
         if self.conn is None:
             raise Exception("DB Connection not available")
+    
     
     def changeBuy(self,newBuyin):
         try:
@@ -47,23 +50,29 @@ class Game:
             return "The reserve amount has to be a number"
     
     def newGame(self,*args):
-        buyinAmount = 400
-        reserve = 200
-        rent = 0
-        gametime = datetime.now()
-        if (len(args)>0):
-            buyinAmount = args[0]
-        if (len(args)>1):
-            reserve = args[1]
-        query = f"INSERT INTO game (BUY_IN, RENT, START_TIME,RESERVE ) VALUES({buyinAmount},{rent},'{gametime}',{reserve})"
-        result = self.conn.data_insert(query)
-        if result:
-            query = "SELECT ID,START_TIME FROM game where ID = (SELECT MAX(ID) FROM game)"
-            result = (self.conn.data_operations(query))
-            for value in result:
-                gameNo = value[0]
-                gameTime = value[1]
-        return gameNo,gameTime
+        game_id = self.getGameId()
+        if not game_id:
+            buyinAmount = 400
+            reserve = 200
+            rent = 0
+            settled = 0
+            gametime = datetime.now()
+            if (len(args)>0):
+                buyinAmount = args[0]
+            if (len(args)>1):
+                reserve = args[1]
+            query = f"INSERT INTO game (BUY_IN, RENT, START_TIME,RESERVE,SETTLED ) VALUES({buyinAmount},{rent},'{gametime}',{reserve},{settled})"
+            result = self.conn.data_insert(query)
+            if result:
+                query = "SELECT ID,START_TIME FROM game where ID = (SELECT MAX(ID) FROM game)"
+                result = (self.conn.data_operations(query))
+                for value in result:
+                    gameNo = value[0]
+                    gameTime = value[1]
+            return f"Started new game {gameNo} at {gameTime}"
+        else:
+            return f"Game {game_id} is already running."
+    
     def getGameId(self):
         query = "select max(id) from game where end_time is null"
         result = self.conn.data_operations(query)
@@ -160,7 +169,7 @@ class Game:
         response.append(f"{' '.join(result_cols)}")
         
         response.append(line)
-    #r.append(result_cols)
+        #r.append(result_cols)
         for row in result:
             if row[2]:
                 name = row[0]
@@ -203,173 +212,10 @@ class Game:
         
 
 
-class Player:
-    def __init__(self,conn):
-        self.conn = conn
-        if self.conn is None:
-            raise Exception("DB Connection not available")
-    
-    def addBuy(self,name,gamdeId):
-        player_id = self.getPlayerId(name)
-        if player_id:
-            query = f"INSERT INTO buy (game_id,player_id) VALUES({gamdeId},{player_id})"
-            result = self.conn.data_insert(query)
-            return result
-        else:
-            return False
-
-    def getPlayerId(self,name):
-        query = f"select id from player where name = '{name}'"
-        result = self.conn.data_operations(query)
-        if result:
-            return result[0][0]
-        else:
-            return None
-
-    def isGamePlayer(player_id,game_id):
-        query = "select count(player_id from buy where"
-
-    
-
-    
 
 
-class Winner:
-    def __init__(self,conn):
-        self.conn = conn
-        if self.conn is None:
-            raise Exception("DB Connection not available")
 
-    def addPlayerWin(self,player,profit,share,value,game_id):
-        player_id = Player(self.conn).getPlayerId(player.lower())
-        end_time = datetime.now()
-        query = f"INSERT INTO winner (profit,share,value,game_id,player_id) VALUES({profit},{share},{value},{game_id},{player_id})"
-        result = self.conn.data_insert(query)
-        return result
-    
-    def prepareWin(self,winner,runner):
-        game = Game(self.conn)
-        game_id = game.getGameId()
-        if game_id:
-            buyins = game.getBuyins(game_id)
-            reserve = float(game.getreserve(game_id))
-            amount = float(game.getBuyAmount(game_id))
-            totalAmount = sum(buyins.values())*amount
-            winneramount = round(( totalAmount - reserve)*.667,-2)
-            runneramount = totalAmount - reserve - winneramount
-            if (winner.lower() in buyins.keys())  and (runner.lower() in buyins.keys()):
-                return (winneramount,runneramount,amount,buyins,totalAmount,game_id)
-            else:
-                response = "The winners are not in the game played."
-        else:
-            response = "No game in progress"
-        return response
-    
-    def getDivision(self,winners,profits,buyins,amount):
-        division = {}
-        amountbuyins = {}
-        for player in buyins:
-            if player not in winners:
-                amountbuyins[player] = buyins[player]*amount
 
-        #Assign reserve to the Treasurer
-        if sum(amountbuyins.values()) > sum(profits):
-            #Hard coding for Chandra for now -- later get it from treasurer name
-            if ('chandra' in amountbuyins.keys()):
-                reserveAmount = sum(amountbuyins.values()) - sum(profits)
-                amountbuyins['chandra'] -= reserveAmount
-                division['Reserve'] = f"Chandra->{reserveAmount}\n"
-        for i in range(len(winners)):
-            player = winners[i]
-            amount = profits[i]
-            division[player] = ""
-            while (amount > 0) and (len(amountbuyins) > 0):
-                names = list(amountbuyins.keys())
-                playername = random.choice(names)
-                if amountbuyins[playername] > amount:
-                    sendamount = amount
-                    amountbuyins[playername] -= sendamount
-                    amount = 0
-                else:
-                    sendamount = amountbuyins[playername]
-                    amount -= sendamount
-                    amountbuyins.pop(playername)
-                division[player] += (f"{playername.title()}->{sendamount}\n")
-        if len(amountbuyins) > 0:
-            division['Reserve'] = f"{playername.title()}->{amountbuyins[playername]}\n"
-        return division
-    
-    def normalWin(self,winner,runner):
-        result = self.prepareWin(winner,runner)
-        if type(result) == tuple:
-            winneramount,runneramount,amount,buyins,totalAmount,game_id = result
-            winner_profit = winneramount - buyins[winner.lower()]*amount
-            runner_profit = runneramount - buyins[runner.lower()]*amount
-            winner_share = winneramount/totalAmount
-            runner_share = runneramount/totalAmount
-            response = self.addWins([winner,runner],[winner_profit,runner_profit],[winner_share,runner_share],buyins,amount,game_id)
-            return response
-        else:
-            return result
-        
-    def addWins(self,winners,profits,shares,buyins,amount,game_id):
-        response = ""
-        for i in range(len(winners)):
-            winner = winners[i]
-            profit = profits[i]
-            share = shares[i]
-            self.addPlayerWin(winner,profit,share,buyins[winner.lower()]*amount,game_id)
-            response += f"{winner.title()} : Gross {buyins[winner.lower()]*amount+profit} & Net :{profit}\n"
-        response +="\n"
-        divmesg = self.getDivision(winners,profits,buyins,amount)
-        for player in divmesg:
-            response += f"To {player.title()} :\n{divmesg[player]}\n"
-        #Close the game before sending response
-        Game(self.conn).close()
-        return response
-    
-    def ICMWin(self,chipsCount,winnerName):
-        chips = chipsCount.split('/')
-        winners = winnerName.split('/')
-        result = self.prepareWin(winners[0],winners[1])
-        if type(result) == tuple :
-            try:
-                winnerChips = int(chips[0]) 
-                runnerChips = int(chips[1])
-                chipsTotal = winnerChips + runnerChips
-                winneramount,runneramount,amount,buyins,totalAmount,game_id = result
-                winDiff = winneramount - runneramount
-                firstWinner = round((winDiff*(winnerChips/chipsTotal) + runneramount),-2)
-                secondWinner = winneramount + runneramount - firstWinner
-                winner_profit = firstWinner - buyins[winners[0].lower()]*amount
-                runner_profit = secondWinner - buyins[winners[1].lower()]*amount
-                winner_share = firstWinner/totalAmount
-                runner_share = secondWinner/totalAmount
-                if winner_share == runner_share:
-                    winner_share = 0.501
-                    runner_share = 0.499
-                response = self.addWins(winners,[winner_profit,runner_profit],[winner_share,runner_share],buyins,amount,game_id)
-                return response
-            except Exception as e:
-                print(e)
-                return "Chips should be in Numbers"
-        else:
-            return result
-
-class Register:
-    def __init__(self,conn):
-        self.conn = conn
-        if self.conn is None:
-            raise Exception("DB Connection not available")
-    def addPlayer(self,name):
-        query = f"INSERT INTO player (NAME ) VALUES('{name}')"
-        result = self.conn.data_insert(query)
-        if result:
-            query = f"SELECT name FROM player where name = '{name}'"
-            result = (self.conn.data_operations(query))
-            for value in result:
-                name = value[0]
-                return name
 
 
 if __name__ == '__main__':

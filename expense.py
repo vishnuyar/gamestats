@@ -29,6 +29,21 @@ class Expense:
             print(e)
             return "Expense amount has to be numeric"
 
+    def showList(self,args):
+        items = 5
+        response = "\n"
+        if len(args) > 0:
+            try:
+                items = int(args[0])
+            except Exception as e:
+                return "No of items has to be numeric"
+        query = f"select * from expenses order by expense_time desc LIMIT {items}"
+        result = self.conn.data_operations(query)
+        for r in result:
+            exp_date = str(r[2]).split(" ")[0]
+            response +=f"{exp_date}-> {r[1]} :: {r[3]}\n"
+        return response
+
     def balance(self):
         reserveTotal = 0.0
         expensesTotal = 0.0

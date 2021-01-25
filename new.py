@@ -4,8 +4,12 @@ import discord
 import random
 from dotenv import load_dotenv
 from discord.ext import commands
-from game import Game, Register, Player, Winner
+from game import Game
+from register import Register
+from player import Player
+from winner import Winner
 from expense import Expense
+from ledger import Ledger
 from connect import Connection
 from data import Details
 from image import createImage
@@ -18,7 +22,7 @@ try:
     TOKEN=Details().DISCORD_TOKEN
     GUILD=Details().DISCORD_GUILD
     
-    CHANNEL="pokerstats"
+    CHANNEL=Details().CHANNEL
     connect=Connection()
     connect.connect()
 
@@ -58,6 +62,31 @@ try:
         if (ctx.channel.name == CHANNEL):
             response = Game(connect).getStatus()
             await ctx.send(response)
+    
+    @ bot.command(name = 'settle',help="GameNo/all Settles the ledger")
+    async def settle(ctx,*args):
+        if (ctx.channel.name == CHANNEL):
+            if len(args) > 0:
+                if args[0] == 'all':
+                    args = []
+                    response = Ledger(connect).clearLedger(args)
+                else:
+                    response = Ledger(connect).clearLedger(args)
+            else:
+                response = "Either GameNo. or all should be given"
+            await ctx.send(response)
+
+    @ bot.command(name = 'list',help="Show the list of expenditures default 5")
+    async def settle(ctx,*args):
+        if (ctx.channel.name == CHANNEL):
+            response = Expense(connect).showList(args)
+            await ctx.send(response)
+
+    @ bot.command(name = 'show',help="Shows ledger balances")
+    async def show(ctx):
+        if (ctx.channel.name == CHANNEL):
+            response = Ledger(connect).show()
+            await ctx.send(response)
 
     @ bot.command(name = 'expense',help="Add expense details amount, description")
     async def game(ctx,*args):
@@ -74,7 +103,7 @@ try:
             response = Expense(connect).balance()
             await ctx.send(response)
     
-    @ bot.command(name = 'rank',help="'text' Will give the Leaderboard for the current year")
+    @ bot.command(name = 'rank',help="'text' gives the Leaderboard for the current year")
     async def rank(ctx,*arg):
         if (ctx.channel.name == CHANNEL):
             if arg:
@@ -86,8 +115,7 @@ try:
     @ bot.command(name = 'start',help="'buyin amount' 'reserve' Default is 400,200")
     async def start(ctx, *args):
         if (ctx.channel.name == CHANNEL):
-            game=Game(connect).newGame(*args)
-            response=f"Started new game {game[0]} at {game[1]}"
+            response=Game(connect).newGame(*args)
             await ctx.send(response)
     
     @ bot.command(name = 'amount',help="'change buyin amount'")
