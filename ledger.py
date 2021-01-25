@@ -62,15 +62,18 @@ class Ledger:
         else:
             details = self.getDetails()
         if type(details) == dict:
-            result = self.closeLedger(game_id)
-            if result:
-                response = "\n"
-                recd = self.prepareResponse(details)
-                for player in recd:
-                    response += f"To {player.title()} :\n{recd[player]}\n"
-                return response
+            if len(details) > 0:
+                result = self.closeLedger(game_id)
+                if result:
+                    response = "\n"
+                    recd = self.prepareResponse(details)
+                    for player in recd:
+                        response += f"To {player.title()} :\n{recd[player]}\n"
+                    return response
+                else:
+                    return "Error settling games and clearing Ledger"
             else:
-                return "Error settling games and clearing Ledger"
+                return "Nothing to settle. All settled"
         else:
             return details         
          

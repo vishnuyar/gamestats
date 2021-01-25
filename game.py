@@ -14,7 +14,34 @@ class Game:
         if self.conn is None:
             raise Exception("DB Connection not available")
     
-    
+    def getBuyinId(self,player_id,game_id):
+        query = f"select max(id) from buy where player_id = {player_id} and game_id = {game_id}"
+        result = self.conn.data_operations(query)
+        if result:
+            return result[0][0]
+        else:
+            return None
+
+    def delBuyin(self,playername):
+        game_id = self.getGameId()
+        if game_id:
+            player_id = Player(self.conn).getPlayerId(playername.lower())
+            if player_id:
+                buyin_id = self.getBuyinId(player_id,game_id)
+                if buyin_id:
+                    query = f"delete from buy where id = {buyin_id}"
+                    result = self.conn.data_insert(query)
+                    if result:
+                        return f"one Buyin removed for {playername}"
+                    else:
+                        return f"Failed to remove Buyin for {playername}"
+                else:
+                    return f"{playername} does not have buyin in Game:{game_id}" 
+            else:
+                return f"{playername.title()} is not a registered player" 
+        else:
+            return "No game in progress to remove buyin"
+
     def changeBuy(self,newBuyin):
         try:
             amount = float(newBuyin)

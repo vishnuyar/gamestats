@@ -28,7 +28,7 @@ try:
 
     bot=commands.Bot(command_prefix = '!')
 
-    @ bot.command(name = 'buy',help="'playername': Add as many players names as buyins ")
+    @ bot.command(name = 'buy',help="'playername':Add as many players names as buyins")
     async def buy(ctx, *args):
         if (ctx.channel.name == CHANNEL):
             if len(args) > 0:
@@ -38,7 +38,7 @@ try:
                 response="Add player names for buyins"
             await ctx.send(response)
 
-    @ bot.command(name = 'winner',help="'winnername' 'runnername'")
+    @ bot.command(name = 'winner',help="'winnername' 'runnername': Add game winners")
     async def winner(ctx,*args):
         if (ctx.channel.name == CHANNEL):
             if (len(args) ==2):
@@ -47,7 +47,7 @@ try:
                 response = "You need two winners"
             await ctx.send(response)
 
-    @ bot.command(name = 'icm',help="'winnerchips/runnerchips' 'winner/runner'")
+    @ bot.command(name = 'icm',help="'highchips/lowchips' 'winner/runner':ICM win")
     async def icm(ctx,*args):
         if (ctx.channel.name == CHANNEL):
             if (len(args) ==2):
@@ -57,13 +57,13 @@ try:
             await ctx.send(response)
 
 
-    @ bot.command(name = 'game',help="Will give the current status of the game")
+    @ bot.command(name = 'game',help=" Current status of the game")
     async def game(ctx):
         if (ctx.channel.name == CHANNEL):
             response = Game(connect).getStatus()
             await ctx.send(response)
     
-    @ bot.command(name = 'settle',help="GameNo/all Settles the ledger")
+    @ bot.command(name = 'settle',help="'GameNo'/'all': Settles the ledger by option")
     async def settle(ctx,*args):
         if (ctx.channel.name == CHANNEL):
             if len(args) > 0:
@@ -76,19 +76,19 @@ try:
                 response = "Either GameNo. or all should be given"
             await ctx.send(response)
 
-    @ bot.command(name = 'list',help="Show the list of expenditures default 5")
+    @ bot.command(name = 'list',help="'no of items':List of expenditures, default 5")
     async def settle(ctx,*args):
         if (ctx.channel.name == CHANNEL):
             response = Expense(connect).showList(args)
             await ctx.send(response)
 
-    @ bot.command(name = 'show',help="Shows ledger balances")
+    @ bot.command(name = 'show',help=" Shows ledger balances")
     async def show(ctx):
         if (ctx.channel.name == CHANNEL):
             response = Ledger(connect).show()
             await ctx.send(response)
 
-    @ bot.command(name = 'expense',help="Add expense details amount, description")
+    @ bot.command(name = 'expense',help="'amount' 'description':Add expense details")
     async def game(ctx,*args):
         if (ctx.channel.name == CHANNEL):
             if len(args) > 1:
@@ -97,13 +97,22 @@ try:
                 response = "Both Amount and description required for adding expense"
             await ctx.send(response)
     
-    @ bot.command(name = 'balance',help="Gives reserve fund balance")
+    @ bot.command(name = 'balance',help=" Gives reserve fund balance")
     async def balance(ctx,*args):
         if (ctx.channel.name == CHANNEL):
             response = Expense(connect).balance()
             await ctx.send(response)
+
+    @ bot.command(name = 'deletebuy',help="'playername': Removes player buyin")
+    async def delbuy(ctx,*arg):
+        if (ctx.channel.name == CHANNEL):
+            if len(arg) > 0:
+                response = Game(connect).delBuyin(arg[0])
+            else:
+                response = "Player name is compulsory to remove the buyin"
+            await ctx.send(response)
     
-    @ bot.command(name = 'rank',help="'text' gives the Leaderboard for the current year")
+    @ bot.command(name = 'rank',help="'text': Leaderboard for the current year")
     async def rank(ctx,*arg):
         if (ctx.channel.name == CHANNEL):
             if arg:
@@ -112,13 +121,13 @@ try:
                 createImage()
                 await ctx.send(file=discord.File('rank.png'))
 
-    @ bot.command(name = 'start',help="'buyin amount' 'reserve' Default is 400,200")
+    @ bot.command(name = 'start',help="'buyin amount' 'reserve': Default is 400,200")
     async def start(ctx, *args):
         if (ctx.channel.name == CHANNEL):
             response=Game(connect).newGame(*args)
             await ctx.send(response)
     
-    @ bot.command(name = 'amount',help="'change buyin amount'")
+    @ bot.command(name = 'amount',help="'buyin amount':Change Buyin Amount")
     async def amount(ctx, *args):
         if (ctx.channel.name == CHANNEL):
             if len(args) > 0:
@@ -127,7 +136,7 @@ try:
                 response=f"Buyin amount has to be provided"
             await ctx.send(response)
     
-    @ bot.command(name = 'reserve',help="'change reserve amount'")
+    @ bot.command(name = 'reserve',help="'amount':Change reserve amount'")
     async def reserve(ctx, *args):
         if (ctx.channel.name == CHANNEL):
             if len(args) > 0:
@@ -136,7 +145,7 @@ try:
                 response=f"reserve amount has to be provided"
             await ctx.send(response)
 
-    @ bot.command(name = 'register',help="'playername' for adding a new player to the System")
+    @ bot.command(name = 'register',help="'playername': Register a new player")
     async def register(ctx, arg):
         if (ctx.channel.name == CHANNEL):
             players=Game(connect).getPlayers()
