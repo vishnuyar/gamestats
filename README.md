@@ -4,7 +4,7 @@ A simple Discor Bot app for keeping track of Poker Games played by a group of fr
 
 List of commands
 
-  amount    'buyin amount':Change Buyin Amount
+  amount    'buyin amount':Change Buyin Amount<br>
   balance   Gives reserve fund balance
   buy       'playername':Add as many players names as buyins
   deletebuy 'playername': Removes player buyin
