@@ -23,9 +23,9 @@ class Winner:
             buyins = game.getBuyins(game_id)
             reserve = float(game.getreserve(game_id))
             amount = float(game.getBuyAmount(game_id))
-            totalAmount = sum(buyins.values())*amount
-            winneramount = round(( totalAmount - reserve)*.667,-2)
-            runneramount = totalAmount - reserve - winneramount
+            totalAmount = sum(buyins.values())*amount - reserve
+            winneramount = round(( totalAmount )*.667,-2)
+            runneramount = totalAmount - winneramount
             if (winner.lower() in buyins.keys())  and (runner.lower() in buyins.keys()):
                 return (winneramount,runneramount,amount,buyins,totalAmount,game_id)
             else:
