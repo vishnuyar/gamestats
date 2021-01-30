@@ -26,7 +26,7 @@ try:
     connect=Connection()
     connect.connect()
 
-    bot=commands.Bot(command_prefix = '!')
+    bot=commands.Bot(command_prefix = '')
 
     @ bot.command(name = 'buy',help="'playername':Add as many players names as buyins")
     async def buy(ctx, *args):
@@ -42,16 +42,16 @@ try:
     async def winner(ctx,*args):
         if (ctx.channel.name == CHANNEL):
             if (len(args) ==2):
-                response=Winner(connect).normalWin(args[0],args[1])
+                response=Winner(connect).normalWin(args[0].lower(),args[1].lower())
             else:
                 response = "You need two winners"
             await ctx.send(response)
 
-    @ bot.command(name = 'icm',help="'highchips/lowchips' 'winner/runner':ICM win")
+    @ bot.command(name = 'icm',help="'highchips lowchips' 'winner runner':ICM win")
     async def icm(ctx,*args):
         if (ctx.channel.name == CHANNEL):
-            if (len(args) ==2):
-                response=Winner(connect).ICMWin(args[0],args[1])
+            if (len(args) ==4):
+                response=Winner(connect).ICMWin(args[0],args[1],args[2].lower(),args[3].lower())
             else:
                 response = "You need to provide both chip counts and winners"
             await ctx.send(response)

@@ -99,10 +99,10 @@ class Winner:
         else:
             return "Failed to add entries to Ledger, game not closed"
     
-    def ICMWin(self,chipsCount,winnerName):
-        chips = chipsCount.split('/')
-        winners = winnerName.split('/')
-        result = self.prepareWin(winners[0],winners[1])
+    def ICMWin(self,chips1,chips2,winnername,runnername):
+        chips =  [chips1,chips2]
+        winners = [winnername,runnername]
+        result = self.prepareWin(winners[0].lower(),winners[1].lower())
         if type(result) == tuple :
             try:
                 winnerChips = int(chips[0]) 
