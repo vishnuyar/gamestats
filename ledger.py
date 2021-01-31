@@ -109,12 +109,12 @@ class Ledger:
                 reserveAmount = sum(details.values())*-1
                 for playername in details:
                     if details[playername] > 0:
-                        positive +=f"{playername.title()} <- {details[playername]}\n"
+                        positive +=f"{playername.title()}<-- {details[playername]}\n"
                     else:
-                        negative +=f"{playername.title()} -> {details[playername]*-1}\n"
+                        negative +=f"{playername.title()}--> {details[playername]*-1}\n"
                 response = "Receive:"+positive
                 if reserveAmount > 0:
-                    response +=f"Reserve <-{reserveAmount}\n"
+                    response +=f"Reserve<-- {reserveAmount}\n"
                 response +="\nSend:"+negative
                 return response
             else:

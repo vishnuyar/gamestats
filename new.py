@@ -26,7 +26,7 @@ try:
     connect=Connection()
     connect.connect()
 
-    bot=commands.Bot(command_prefix = '')
+    bot=commands.Bot(command_prefix = '',case_insensitive=True)
 
     @ bot.command(name = 'buy',help="'playername':Add as many players names as buyins")
     async def buy(ctx, *args):
@@ -42,7 +42,7 @@ try:
     async def winner(ctx,*args):
         if (ctx.channel.name == CHANNEL):
             if (len(args) ==2):
-                response=Winner(connect).normalWin(args[0].lower(),args[1].lower())
+                response=Winner(connect).normalWin(args[0],args[1])
             else:
                 response = "You need two winners"
             await ctx.send(response)
@@ -50,10 +50,10 @@ try:
     @ bot.command(name = 'icm',help="'highchips lowchips' 'winner runner':ICM win")
     async def icm(ctx,*args):
         if (ctx.channel.name == CHANNEL):
-            if (len(args) ==4):
-                response=Winner(connect).ICMWin(args[0],args[1],args[2].lower(),args[3].lower())
+            if (len(args) == 4):
+                response=Winner(connect).ICMWin(args[0],args[1],args[2],args[3])
             else:
-                response = "You need to provide both chip counts and winners"
+                response = "You need to provide both chip counts and winners with space in between"
             await ctx.send(response)
 
 
@@ -148,16 +148,10 @@ try:
     @ bot.command(name = 'register',help="'playername': Register a new player")
     async def register(ctx, arg):
         if (ctx.channel.name == CHANNEL):
-            players=Game(connect).getPlayers()
-            name=arg
-            if name.lower() in players:
-                response=f"{name} is already a registered player"
+            if arg:
+                response = Register(connect).addPlayer(arg)
             else:
-                result=Register(connect).addPlayer(name.lower())
-                if result:
-                    response=f"you have registered player {result}"
-                else:
-                    response=f"Unable to register {name}"
+                response = "Please provide player name to register"
             await ctx.send(response)
 
     bot.run(TOKEN)

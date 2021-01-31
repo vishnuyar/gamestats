@@ -23,9 +23,10 @@ class Game:
             return None
 
     def delBuyin(self,playername):
+        playername = playername.lower()
         game_id = self.getGameId()
         if game_id:
-            player_id = Player(self.conn).getPlayerId(playername.lower())
+            player_id = Player(self.conn).getPlayerId(playername)
             if player_id:
                 buyin_id = self.getBuyinId(player_id,game_id)
                 if buyin_id:
@@ -166,10 +167,11 @@ class Game:
         buyins={}
         players = self.getPlayers()
         game_id = self.getGameId()
+        buys = [player.lower() for player in buys]
         if game_id:
             for player in buys:
-                if player.lower() in players:
-                    status = Player(self.conn).addBuy(player.lower(),game_id)
+                if player in players:
+                    status = Player(self.conn).addBuy(player,game_id)
                     if status:
                         if player in buyins.keys():
                             buyins[player] += 1

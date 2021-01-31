@@ -10,7 +10,7 @@ class Winner:
             raise Exception("DB Connection not available")
 
     def addPlayerWin(self,player,profit,share,value,game_id):
-        player_id = Player(self.conn).getPlayerId(player.lower())
+        player_id = Player(self.conn).getPlayerId(player)
         end_time = datetime.now()
         query = f"INSERT INTO winner (profit,share,value,game_id,player_id) VALUES({profit},{share},{value},{game_id},{player_id})"
         result = self.conn.data_insert(query)
@@ -26,7 +26,7 @@ class Winner:
             totalAmount = sum(buyins.values())*amount - reserve
             winneramount = round(( totalAmount )*.667,-2)
             runneramount = totalAmount - winneramount
-            if (winner.lower() in buyins.keys())  and (runner.lower() in buyins.keys()):
+            if (winner in buyins.keys())  and (runner in buyins.keys()):
                 return (winneramount,runneramount,amount,buyins,totalAmount,game_id)
             else:
                 response = "The winners are not in the game played."
@@ -70,14 +70,16 @@ class Winner:
         return division
     
     def normalWin(self,winner,runner):
+        winner = winner.lower()
+        runner = runner.lower()
         result = self.prepareWin(winner,runner)
         if type(result) == tuple:
             winneramount,runneramount,amount,buyins,totalAmount,game_id = result
-            winner_profit = winneramount - buyins[winner.lower()]*amount
-            runner_profit = runneramount - buyins[runner.lower()]*amount
+            winner_profit = winneramount - buyins[winner]*amount
+            runner_profit = runneramount - buyins[runner]*amount
             winner_share = winneramount/totalAmount
             runner_share = runneramount/totalAmount
-            response = self.addWins([winner.lower(),runner.lower()],[winner_profit,runner_profit],[winner_share,runner_share],buyins,amount,game_id)
+            response = self.addWins([winner,runner],[winner_profit,runner_profit],[winner_share,runner_share],buyins,amount,game_id)
             return response
         else:
             return result
@@ -88,8 +90,8 @@ class Winner:
             winner = winners[i]
             profit = profits[i]
             share = shares[i]
-            self.addPlayerWin(winner.lower(),profit,share,buyins[winner.lower()]*amount,game_id)
-            response += f"{winner.title()} : Gross {buyins[winner.lower()]*amount+profit} & Net :{profit}\n"
+            self.addPlayerWin(winner,profit,share,buyins[winner]*amount,game_id)
+            response += f"{winner.title()} : Gross {buyins[winner]*amount+profit} & Net :{profit}\n"
         response +="\n"
         result = Ledger(self.conn).createEntries(winners,profits,buyins,amount,game_id)
         if not result:
@@ -101,8 +103,8 @@ class Winner:
     
     def ICMWin(self,chips1,chips2,winnername,runnername):
         chips =  [chips1,chips2]
-        winners = [winnername,runnername]
-        result = self.prepareWin(winners[0].lower(),winners[1].lower())
+        winners = [winnername.lower(),runnername.lower()]
+        result = self.prepareWin(winners[0],winners[1])
         if type(result) == tuple :
             try:
                 winnerChips = int(chips[0]) 
@@ -112,8 +114,8 @@ class Winner:
                 winDiff = winneramount - runneramount
                 firstWinner = round((winDiff*(winnerChips/chipsTotal) + runneramount),-2)
                 secondWinner = winneramount + runneramount - firstWinner
-                winner_profit = firstWinner - buyins[winners[0].lower()]*amount
-                runner_profit = secondWinner - buyins[winners[1].lower()]*amount
+                winner_profit = firstWinner - buyins[winners[0]]*amount
+                runner_profit = secondWinner - buyins[winners[1]]*amount
                 winner_share = firstWinner/totalAmount
                 runner_share = secondWinner/totalAmount
                 if winner_share == runner_share:
