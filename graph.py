@@ -3,7 +3,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 from data import Details
 import matplotlib.pyplot as plt
-import seaborn as sns
+
 
 def getChart():
     # Create an engine instance
