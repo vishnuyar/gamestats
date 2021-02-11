@@ -9,6 +9,10 @@ mysql-connector-python = "*"
 text-to-image = "*"
 python-dotenv = "*"
 psycopg2-binary = "*"
+pandas = "*"
+matplotlib = "*"
+sqlalchemy = "*"
+seaborn = "*"
 
 [dev-packages]
 

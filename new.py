@@ -13,6 +13,7 @@ from ledger import Ledger
 from connect import Connection
 from data import Details
 from image import createImage
+from graph import getChart
 
 
 try:
@@ -120,6 +121,12 @@ try:
             else:
                 createImage()
                 await ctx.send(file=discord.File('rank.png'))
+    
+    @ bot.command(name = 'chart',help="'Rise of the players")
+    async def rank(ctx,*arg):
+        if (ctx.channel.name == CHANNEL):
+            getChart()
+            await ctx.send(file=discord.File('chart.png'))
 
     @ bot.command(name = 'start',help="'buyin amount' 'reserve': Default is 400,200")
     async def start(ctx, *args):
