@@ -90,7 +90,7 @@ class Winner:
             winner = winners[i]
             profit = profits[i]
             share = shares[i]
-            self.addPlayerWin(winner,profit,share,buyins[winner]*amount,game_id)
+            self.addPlayerWin(winner,profit,share,(profit+buyins[winner]*amount),game_id)
             response += f"{winner.title()} : Gross {buyins[winner]*amount+profit} & Net :{profit}\n"
         response +="\n"
         result = Ledger(self.conn).createEntries(winners,profits,buyins,amount,game_id)
