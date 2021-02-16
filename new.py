@@ -122,10 +122,13 @@ try:
                 createImage()
                 await ctx.send(file=discord.File('rank.png'))
     
-    @ bot.command(name = 'chart',help="'Rise of the players")
+    @ bot.command(name = 'chart',help="'lastNgames':'Rise of the players")
     async def rank(ctx,*arg):
         if (ctx.channel.name == CHANNEL):
-            getChart()
+            if arg:
+                getChart(arg[0])
+            else:
+                getChart()
             await ctx.send(file=discord.File('chart.png'))
 
     @ bot.command(name = 'start',help="'buyin amount' 'reserve': Default is 400,200")
