@@ -113,14 +113,11 @@ try:
                 response = "Player name is compulsory to remove the buyin"
             await ctx.send(response)
     
-    @ bot.command(name = 'rank',help="'text': Leaderboard for the current year")
+    @ bot.command(name = 'rank',help="'lastNgames':  Leaderboard for the games")
     async def rank(ctx,*arg):
         if (ctx.channel.name == CHANNEL):
-            if arg:
-                await ctx.send("\n".join(Game(connect).getRank()))
-            else:
-                createImage()
-                await ctx.send(file=discord.File('rank.png'))
+            createImage(arg)
+            await ctx.send(file=discord.File('rank.png'))
     
     @ bot.command(name = 'chart',help="'lastNgames':'Rise of the players")
     async def rank(ctx,*arg):

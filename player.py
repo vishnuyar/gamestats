@@ -29,9 +29,13 @@ class Player:
         else:
             return None
 
-    def isGamePlayer(player_id,game_id):
-        query = "select count(player_id from buy where"
+    def getPlayerDict(self):
+        playerDict = {}
+        query = "select id,name from player"
+        result = self.conn.data_operations(query)
+        for r in result:
+            playerDict.update({r[0]:r[1]})
+        return playerDict
 
-    
 
     

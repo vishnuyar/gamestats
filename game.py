@@ -191,6 +191,7 @@ class Game:
     
     def rankResponse(self,result):
         response = []
+        playerDict = Player(self.conn).getPlayerDict()
         line = "---------------------------------------------"
         result_cols = ["Player    ","Games","Buyins","First","Second","S/R    "]
         # print(f"{','.join(result_cols)}")
@@ -201,30 +202,36 @@ class Game:
         #r.append(result_cols)
         for row in result:
             if row[2]:
-                name = row[0]
+                name = playerDict[row[0]]
                 games = row[1]
                 buyins = row[2]
-                if row[3]:
-                    first = int(row[3])
-                else:
-                    first = 0
-                if row[4]:
-                    second = int(row[4])
-                else:
-                    second = 0
-                strikerate = "{:4.1f}".format((first+second)*100/games)
-                if row[5]:
-                    net = "{:4.1f}".format(row[5])
-                else:
-                    net = 0
-                nextcol = name.ljust(10,' ').title()+str(games).rjust(5,' '),str(buyins).rjust(6,' '),str(first).rjust(5,' '),str(second).rjust(6,' '),(strikerate).rjust(5,' ')
+                first = row[3]
+                second = row[4]
+                strikerate = row[5]
+                nextcol = name.ljust(10,' ').title()+str(games).rjust(5,' '),str(buyins).rjust(6,' '),str(first).rjust(5,' '),str(second).rjust(6,' '),str(strikerate).rjust(5,' ')
                 response.append(f"{' '.join(nextcol)}")
                 # response.append(line)
         return response
 
-    
-    def getRank(self):
-        leaderrank = self.getLeaderBoard()
+    def getNGameid(self,lastnGames):
+        query = f"select min(games.id) from (select id from game order by id desc limit {lastnGames}) as games"
+        result = (self.conn.data_operations(query))
+        if result:
+            return result[0][0]
+        else:
+            #Hardcording for this year's beginning game. Need to change in future
+            return 197
+    def getRank(self,lastnGames = None):
+        #Hardcording for this year's beginning game. Need to change in future
+        minGameid = 196
+        try:
+            if lastnGames:
+                lastnGames = int(lastnGames)
+                minGameid = self.getNGameid(lastnGames) - 1
+        except Exception as e:
+            print(e)
+            
+        leaderrank = self.getLeaderBoard(minGameid)
         return self.rankResponse(leaderrank)
     
     def close(self):
@@ -233,12 +240,11 @@ class Game:
         query = f"update game set end_time = '{end_time}' where id = {game_id}"
         result = self.conn.data_insert(query)
 
-    def getLeaderBoard(self):
-        query = "select name,games_played,total_buyins,coalesce(first,0) as firstN,coalesce(second,0) as secondN,net_win,(first+second) as total from leaderboard where games_played > 0 order by total desc NULLS LAST,first desc NULLS LAST, second desc NULLS LAST, net_win desc"
+    def getLeaderBoard(self,minGameId):
+        query = f"select player_id,count(player_id) as played,sum(buyins) as total_buyins,count(first) as first ,count(second) as second,round((count(first)+count(second))*100.0/count(player_id),2) as strikerate from player_wins where game_id > {minGameId} group by player_id order by (count(first)+count(second)) desc;"
         result = (self.conn.data_operations(query))
         return result
 
-        
 
 
 
