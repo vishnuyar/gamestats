@@ -136,7 +136,7 @@ class Analyze:
         # #143D59,#F4B41A #EDF5E1 0B0C10 #EEE2DC #AC3B61 #25274D #29648A
         i = 10
         
-        text = f"Analysis of {self.name}"
+        text = f"Analysis of {self.name.title()}"
         draw.text((200,5), text=text, font=fnt1,align="middle", fill="#143D59")
         for message in self.messages:
             # print(r)

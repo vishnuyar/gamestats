@@ -124,7 +124,7 @@ try:
     async def rank(ctx,*arg):
         if (ctx.channel.name == CHANNEL):
             if arg:
-                Analyze(connect).analyze(lower(arg[0]))
+                Analyze(connect).analyze((arg[0].lower()))
                 await ctx.send(file=discord.File('analyze.png'))
             else:
                 await ctx.send("Need a player name to analyze")
