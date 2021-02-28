@@ -114,11 +114,11 @@ try:
                 response = "Player name is compulsory to remove the buyin"
             await ctx.send(response)
     
-    @ bot.command(name = 'rank',help="'lastNgames':  Leaderboard for the games")
-    async def rank(ctx,*arg):
-        if (ctx.channel.name == CHANNEL):
-            createImage(arg)
-            await ctx.send(file=discord.File('rank.png'))
+    # @ bot.command(name = 'rank',help="'lastNgames':  Leaderboard for the games")
+    # async def rank(ctx,*arg):
+    #     if (ctx.channel.name == CHANNEL):
+    #         createImage(arg)
+    #         await ctx.send(file=discord.File('rank.png'))
 
     @ bot.command(name = 'analyze',help="'name':  Analyze this player")
     async def rank(ctx,*arg):
@@ -129,14 +129,14 @@ try:
             else:
                 await ctx.send("Need a player name to analyze")
     
-    @ bot.command(name = 'chart',help="'lastNgames':'Rise of the players")
-    async def rank(ctx,*arg):
-        if (ctx.channel.name == CHANNEL):
-            if arg:
-                getChart(arg[0])
-            else:
-                getChart()
-            await ctx.send(file=discord.File('chart.png'))
+    # @ bot.command(name = 'chart',help="'lastNgames':'Rise of the players")
+    # async def rank(ctx,*arg):
+    #     if (ctx.channel.name == CHANNEL):
+    #         if arg:
+    #             getChart(arg[0])
+    #         else:
+    #             getChart()
+    #         await ctx.send(file=discord.File('chart.png'))
 
     @ bot.command(name = 'start',help="'buyin amount' 'reserve': Default is 400,200")
     async def start(ctx, *args):
