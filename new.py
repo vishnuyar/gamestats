@@ -14,6 +14,7 @@ from connect import Connection
 from data import Details
 from image import createImage
 from graph import getChart
+from analyze import Analyze
 
 
 try:
@@ -78,7 +79,7 @@ try:
             await ctx.send(response)
 
     @ bot.command(name = 'list',help="'no of items':List of expenditures, default 5")
-    async def settle(ctx,*args):
+    async def showexpenselist(ctx,*args):
         if (ctx.channel.name == CHANNEL):
             response = Expense(connect).showList(args)
             await ctx.send(response)
@@ -118,6 +119,15 @@ try:
         if (ctx.channel.name == CHANNEL):
             createImage(arg)
             await ctx.send(file=discord.File('rank.png'))
+
+    @ bot.command(name = 'analyze',help="'name':  Analyze this player")
+    async def rank(ctx,*arg):
+        if (ctx.channel.name == CHANNEL):
+            if arg:
+                Analyze(connect).analyze(arg[0])
+                await ctx.send(file=discord.File('analyze.png'))
+            else:
+                await ctx.send("Need a player name to analyze")
     
     @ bot.command(name = 'chart',help="'lastNgames':'Rise of the players")
     async def rank(ctx,*arg):
