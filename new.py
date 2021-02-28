@@ -120,14 +120,15 @@ try:
     #         createImage(arg)
     #         await ctx.send(file=discord.File('rank.png'))
 
-    @ bot.command(name = 'analyze',help="'name':  Analyze this player")
+    @ bot.command(name = 'analyze',help="Analyze the user sending the command")
     async def rank(ctx,*arg):
+        print((ctx.message.author.name))
+        user = ctx.message.author.name
+        print(f"the user is {user}")
         if (ctx.channel.name == CHANNEL):
-            if arg:
-                Analyze(connect).analyze((arg[0].lower()))
-                await ctx.send(file=discord.File('analyze.png'))
-            else:
-                await ctx.send("Need a player name to analyze")
+            Analyze(connect).analyze((user.lower()))
+            await ctx.send(file=discord.File('analyze.png'))
+
     
     # @ bot.command(name = 'chart',help="'lastNgames':'Rise of the players")
     # async def rank(ctx,*arg):
