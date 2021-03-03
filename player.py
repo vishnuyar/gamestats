@@ -3,15 +3,27 @@ class Player:
         self.conn = conn
         if self.conn is None:
             raise Exception("DB Connection not available")
-    
-    def addBuy(self,name,gamdeId):
-        player_id = self.getPlayerId(name)
-        if player_id:
-            query = f"INSERT INTO buy (game_id,player_id) VALUES({gamdeId},{player_id})"
-            result = self.conn.data_insert(query)
-            return result
+
+    def getPlayers(self):
+        players = {}
+        query = "select distinct(name),id from player"
+        result = (self.conn.data_operations(query))
+        for value in result:
+            players.update({value[0]:value[1]})
+        return players
+
+    def addPlayer(self,name):
+        players=self.getPlayers()
+        name=name.lower()
+        if name in players:
+            return f"{name.title()} is already a registered player"
         else:
-            return False
+            query = f"INSERT INTO player (NAME ) VALUES('{name}')"
+            result = self.conn.data_insert(query)
+            if result:
+                return f"you have registered player {name.title()}"
+            else:
+                return f"Error encountered when trying to register {name.title()}"
 
     def getPlayerId(self,name):
         query = f"select id from player where name = '{name}'"

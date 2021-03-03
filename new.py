@@ -5,7 +5,6 @@ import random
 from dotenv import load_dotenv
 from discord.ext import commands
 from game import Game
-from register import Register
 from player import Player
 from winner import Winner
 from expense import Expense
@@ -15,6 +14,8 @@ from data import Details
 from image import createImage
 from graph import getChart
 from analyze import Analyze
+from selfResult import SelfResult
+import uuid
 
 
 try:
@@ -167,9 +168,22 @@ try:
     async def register(ctx, arg):
         if (ctx.channel.name == CHANNEL):
             if arg:
-                response = Register(connect).addPlayer(arg)
+                response = Player(connect).addPlayer(arg)
             else:
                 response = "Please provide player name to register"
+            await ctx.send(response)
+    
+    @ bot.command(name = 'readlog',help="'Read Pokernow logfile")
+    async def logResult(ctx, *arg):
+        if (ctx.channel.name == CHANNEL):
+            if ctx.message.attachments:
+                for attach in ctx.message.attachments:
+                    filename = str(uuid.uuid4())+".csv"
+                    await attach.save(filename)
+                result = SelfResult(connect)
+                response = "\n".join((result.getResults(filename))) 
+            else:
+                response = "Please provide the logfile as attachment"
             await ctx.send(response)
 
     bot.run(TOKEN)

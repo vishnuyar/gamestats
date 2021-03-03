@@ -10,7 +10,6 @@ import csv
 class Game:
     def __init__(self,conn):
         self.conn = conn
-        self.players = []
         if self.conn is None:
             raise Exception("DB Connection not available")
     
@@ -109,13 +108,7 @@ class Game:
         else:
             return None
     
-    def getPlayers(self):
-        players = []
-        query = "select distinct(name) from player"
-        result = (self.conn.data_operations(query))
-        for value in result:
-            players.append(value[0])
-        return players
+    
 
     def getBuyins(self,game_id):
         buyins = {}
@@ -162,16 +155,25 @@ class Game:
         response = f"Buyins : {totalBuyins}\n{' '.join(buyins_data)}\n"
         return response
     
+    def addBuy(self,player_id,gamdeId):
+        if player_id:
+            query = f"INSERT INTO buy (game_id,player_id) VALUES({gamdeId},{player_id})"
+            result = self.conn.data_insert(query)
+            return result
+        else:
+            return False
+
+
     def addBuyins(self,buys):
         nonplayers=[]
         buyins={}
-        players = self.getPlayers()
+        players = Player(self.conn).getPlayers()
         game_id = self.getGameId()
         buys = [player.lower() for player in buys]
         if game_id:
             for player in buys:
                 if player in players:
-                    status = Player(self.conn).addBuy(player,game_id)
+                    status = self.addBuy(players[player],game_id)
                     if status:
                         if player in buyins.keys():
                             buyins[player] += 1
