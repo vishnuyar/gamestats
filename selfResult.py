@@ -25,7 +25,7 @@ class SelfResult:
             try:
                 self.registerPlayers()
                 self.registerBuyins()
-                self.registerWin()
+                #self.registerWin()
 
             except Exception as e:
                 print(f"Error while processing result: {e} ")
