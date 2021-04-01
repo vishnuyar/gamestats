@@ -63,12 +63,12 @@ class Ledger:
             details = self.getDetails()
         if type(details) == dict:
             if len(details) > 0:
+                response = "\n"
+                recd = self.prepareResponse(details)
+                for player in recd:
+                    response += f"To {player.title()} :\n{recd[player]}\n"
                 result = self.closeLedger(game_id)
                 if result:
-                    response = "\n"
-                    recd = self.prepareResponse(details)
-                    for player in recd:
-                        response += f"To {player.title()} :\n{recd[player]}\n"
                     return response
                 else:
                     return "Error settling games and clearing Ledger"
@@ -145,9 +145,9 @@ class Ledger:
 
     def getDetails(self,game_id=None):
         if game_id:
-            query = f"select player_id,sum(amount) from ledger where game_id={game_id} group by player_id "
+            query = f"select player_id,sum(amount) from ledger where game_id={game_id} group by player_id order by sum desc"
         else:
-            query = "select player_id,sum(amount) from ledger group by player_id"
+            query = "select player_id,sum(amount) from ledger group by player_id order by sum desc"
         result = (self.conn.data_operations(query))
         details = {}
         for r in result:
@@ -169,18 +169,24 @@ class Ledger:
                 positive[player] = details[player]
             else:
                 negative[player] = details[player]*-1
-        if sum(negative.values()) > sum(positive.values()):
+        reserveAmount = sum(negative.values()) - sum(positive.values())
+        if reserveAmount > 0:
             #Hard coding for Chandra for now -- later get it from treasurer name
             if ('chandra' in negative.keys()):
-                reserveAmount = sum(negative.values()) - sum(positive.values())
-                negative['chandra'] -= reserveAmount
-                division['Reserve'] = f"Chandra->{reserveAmount}\n"
+                if reserveAmount >= negative['chandra']:
+                    reserveAmount -= negative['chandra']
+                    division['Reserve'] = f"Chandra->{negative['chandra']}\n"
+                    negative.pop('chandra')
+                else:
+                    negative['chandra'] -= reserveAmount
+                    division['Reserve'] = f"Chandra->{reserveAmount}\n"
+                    reserveAmount = 0
         for player in positive:
             amount = positive[player]
             division[player] = ""
             while (amount > 0) and (len(negative) > 0):
                 names = list(negative.keys())
-                playername = random.choice(names)
+                playername = names[-1]
                 if negative[playername] > amount:
                     sendamount = amount
                     negative[playername] -= sendamount
@@ -191,6 +197,9 @@ class Ledger:
                     negative.pop(playername)
                 division[player] += (f"{playername.title()}->{sendamount}\n")
         print(f"negative left:{negative}")
-        if len(negative) > 0:
-            division['Reserve'] = f"{playername.title()}->{negative[playername]}\n"
+        if reserveAmount > 0:
+            if 'Reserve' not in division:
+                division['Reserve'] = ""
+            for playername in negative:
+                division['Reserve'] += (f"{playername.title()}->{negative[playername]}\n")
         return division
