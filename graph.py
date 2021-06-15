@@ -22,7 +22,7 @@ def getChart(no_of_games=None):
 
     sql_query = pd.read_sql_query("select * from games_played_2021 order by game_id",dbConnection)
 
-    df = pd.DataFrame(sql_query, columns=['game_id','vishnu','ramesh','kisor','rajesh','chandra','sudhir'])
+    df = pd.DataFrame(sql_query, columns=['game_id','vishnu','ramesh','kisor','rajesh','chandra','sudhir','bhanu','abhinav'])
     newdf = df.groupby('game_id').sum()
     if no_of_games:
         newdf = newdf[no_of_games*-1:]
@@ -37,7 +37,7 @@ def getChart(no_of_games=None):
     fig = plt.figure(figsize=(10,8),clear=True)
     plt.style.use('fivethirtyeight')
     ax = fig.add_subplot(1,1,1)
-    colors = ['sienna','darkgoldenrod','crimson','forestgreen','dodgerblue','indigo']
+    colors = ['sienna','darkgoldenrod','crimson','forestgreen','dodgerblue','indigo','tomato','darkolivegreen']
     for i,col in enumerate(newdf.columns):
         newdf[col].plot(y=col,color = colors[i],ax=ax,legend=True)
         
@@ -46,7 +46,6 @@ def getChart(no_of_games=None):
     # print(left,right,bottom,top)
     ax.set_facecolor('lightgrey')
     ax.text(left,top,"Who is reaching for the top?",weight='bold',size=18,alpha=0.7)
-    ax.text(right,bottom-1.5,s="Made by Vishnu",ha='right',va='bottom',size=9,weight='bold',color='w',backgroundcolor='black',alpha=0.7)
     ax.set_xlabel("")
     fig.show()
     fig.savefig("chart.png")
