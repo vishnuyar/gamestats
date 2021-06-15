@@ -4,20 +4,22 @@ A simple Discor Bot app for keeping track of Poker Games played by a group of fr
 
 List of commands
 
-  amount    'buyin amount':Change Buyin Amount
-  analyze   Analyze the user sending the command
-  balance   Gives reserve fund balance
-  buy       'playername':Add as many players names as buyins
-  deletebuy 'playername': Removes player buyin
-  expense   'amount' 'description':Add expense details
-  game      Current status of the game
-  help      Shows this message
-  icm       'highchips lowchips' 'winner runner':ICM win
-  list      'no of items':List of expenditures, default 5
-  readlog   'Read Pokernow logfile
-  register  'playername': Register a new player
-  reserve   'amount':Change reserve amount'
-  settle    'GameNo'/'all': Settles the ledger by option
-  show      Shows ledger balances
-  start     'buyin amount' 'reserve': Default is 400,200
-  winner    'winnername' 'runnername': Add game winners
+  **amount**    'buyin amount':Change Buyin Amount<br>
+  **analyze**   Analyze the user sending the command<br>
+  **balance**   Gives reserve fund balance<br>
+  **buy**       'playername':Add as many players names as buyins<br>
+  **chart**     'lastNgames':'Rise of the players<br>
+  **deletebuy** 'playername': Removes player buyin<br>
+  **expense**   'amount' 'description':Add expense details<br>
+  **game**      Current status of the game<br>
+  **help**     Shows this message<br>
+  **icm**       'highchips lowchips' 'winner runner':ICM win<br>
+  **list**      'no of items':List of expenditures, default 5<br>
+  **rank**      'lastNgames':  Leaderboard for the games<br>
+  **readlog**   'Read Pokernow logfile<br>
+  **register**  'playername': Register a new player<br>
+  **reserve**   'amount':Change reserve amount'<br>
+  **settle**    'GameNo'/'all': Settles the ledger by option<br>
+  **show**      Shows ledger balances<br>
+  **start**     'buyin amount' 'reserve': Default is 400,200<br>
+  **winner**    'winnername' 'runnername': Add game winners<br>
